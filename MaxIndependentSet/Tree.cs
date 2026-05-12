@@ -1,198 +1,103 @@
 ﻿namespace MaxIndependentSet
 {
-    public class Edge<T>(Vertex<T> from, Vertex<T> to)
-    {
-        public Vertex<T> From { get; } = from;
-        public Vertex<T> To { get; } = to;
-    }
+	using System;
+	using System.Collections.Generic;
+	using System.Linq;
 
-    public class Vertex<T>(T value)
-    {
-        public T Value { get; } = value;
+	public class Vertex
+	{
+		public int Id { get; }
+		public List<Vertex> Children { get; } = new List<Vertex>();
 
-        public override string ToString() => Value?.ToString() ?? "null";
-    }
+		public Vertex(int id)
+		{
+			Id = id;
+		}
 
-    public class Tree<T>
-    {
-        private readonly List<Edge<T>> _edges = [];
-        private readonly HashSet<Vertex<T>> _vertices = [];
+		public override string ToString() => Id.ToString();
+	}
 
-        public IReadOnlyList<Edge<T>> Edges => _edges;
-        public IReadOnlyCollection<Vertex<T>> Vertices => _vertices;
+	public class Tree
+	{
+		public Vertex[] Vertices { get; }
+		public Vertex Root => Vertices[0];
 
-        public Vertex<T>? Root { get; private set; }
+		public Tree(int n)
+		{
+			Vertices = new Vertex[n];
+			for (int i = 0; i < n; i++)
+			{
+				Vertices[i] = new Vertex(i);
+			}
+		}
 
-        public Tree(Vertex<T> root)
-        {
-            Root = root;
-            _vertices.Add(root);
-        }
+		public void AddEdge(int parent, int child)
+		{
+			// Zakładamy, że parent < child, zgodnie z dokumentacją
+			Vertices[parent].Children.Add(Vertices[child]);
+		}
 
-        public void AddEdge(Vertex<T> from, Vertex<T> to)
-        {
-            if (HasPath(to, from))
-                throw new InvalidOperationException("Dodanie tej krawędzi tworzy cykl.");
+		public void PrintTree()
+		{
+			foreach (var v in Vertices)
+			{
+				foreach (var child in v.Children)
+				{
+					Console.WriteLine($"{v.Id} -> {child.Id}");
+				}
+			}
+		}
 
-            var edge = new Edge<T>(from, to);
+		public long CountMaxIndependentSets()
+		{
+			int n = Vertices.Length;
+			// Tablica -  dostęp (O(1))
+			var dp = new (long x, long y, long z)[n];
 
-            _vertices.Add(from);
-            _vertices.Add(to);
+			// od dołu do góry drzewa
+			for (int i = n - 1; i >= 0; i--)
+			{
+				var v = Vertices[i];
+				var children = v.Children;
 
-            _edges.Add(edge);
-        }
+				// Liść
+				if (children.Count == 0)
+				{
+					dp[i] = (1, 0, 1);
+					continue;
+				}
 
-        public IEnumerable<Vertex<T>> GetChildren(Vertex<T> v)
-        {
-            return _edges
-                .Where(e => e.From.Equals(v))
-                .Select(e => e.To);
-        }
+				// Wierzchołek, którego dziećmi są wyłącznie liście
+				if (children.All(c => c.Children.Count == 0))
+				{
+					dp[i] = (1, 1, 0);
+					continue;
+				}
 
-        public bool Contains(Vertex<T> v) => _vertices.Contains(v);
+				// Wewnątrz drzewa
+				long zv = 1;
+				foreach (var u in children)
+				{
+					zv *= dp[u.Id].y;
+				}
 
-        public bool HasPath(Vertex<T> start, Vertex<T> target)
-        {
-            var visited = new HashSet<Vertex<T>>();
-            return DFS(start, target, visited);
-        }
+				long yv = 1;
+				foreach (var u in children)
+				{
+					yv *= (dp[u.Id].x + dp[u.Id].y);
+				}
+				yv -= zv;
 
-        private bool DFS(Vertex<T> current, Vertex<T> target, HashSet<Vertex<T>> visited)
-        {
-            if (current.Equals(target))
-                return true;
+				long xv = 1;
+				foreach (var u in children)
+				{
+					xv *= (dp[u.Id].y + dp[u.Id].z);
+				}
 
-            visited.Add(current);
+				dp[i] = (xv, yv, zv);
+			}
 
-            foreach (var neighbor in GetChildren(current))
-            {
-                if (!visited.Contains(neighbor))
-                {
-                    if (DFS(neighbor, target, visited))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        public IEnumerable<Vertex<T>> BFS()
-        {
-            if (Root == null)
-                yield break;
-
-            var queue = new Queue<Vertex<T>>();
-            var visited = new HashSet<Vertex<T>>();
-
-            queue.Enqueue(Root);
-            visited.Add(Root);
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-                yield return current;
-
-                foreach (var neighbor in GetChildren(current))
-                {
-                    if (visited.Add(neighbor))
-                    {
-                        queue.Enqueue(neighbor);
-                    }
-                }
-            }
-        }
-
-        public IEnumerable<Vertex<T>> DFS()
-        {
-            if (Root == null)
-                yield break;
-
-            var visited = new HashSet<Vertex<T>>();
-            var stack = new Stack<Vertex<T>>();
-
-            stack.Push(Root);
-
-            while (stack.Count > 0)
-            {
-                var current = stack.Pop();
-
-                if (visited.Contains(current))
-                    continue;
-
-                visited.Add(current);
-                yield return current;
-
-                foreach (var neighbor in GetChildren(current))
-                    stack.Push(neighbor);
-            }
-        }
-
-        public void PrintTree()
-        {
-            foreach (var edge in Edges)
-            {
-                Console.WriteLine($"{edge.From.Value} -> {edge.To.Value}");
-            }
-        }
-
-        public long CountMaxIndependentSets()
-        {
-            var dp = new Dictionary<Vertex<T>, (long x, long y, long z)>();
-            var visited = new HashSet<Vertex<T>>();
-
-            PostOrder(Root!, dp, visited);
-
-            var rootVal = dp[Root!];
-            return rootVal.x + rootVal.y;
-        }
-
-        private void PostOrder(
-            Vertex<T> v,
-            Dictionary<Vertex<T>, (long x, long y, long z)> dp,
-            HashSet<Vertex<T>> visited)
-        {
-            visited.Add(v);
-
-            var children = GetChildren(v).ToList();
-
-            foreach (var c in children)
-            {
-                if (!visited.Contains(c))
-                    PostOrder(c, dp, visited);
-            }
-
-            if (children.Count == 0)
-            {
-                dp[v] = (1, 0, 1);
-                return;
-            }
-
-            if (children.All(c => GetChildren(c).Any() == false))
-            {
-                dp[v] = (1, 1, 0);
-                return;
-            }
-
-            long zv = 1;
-            foreach (var u in children)
-            {
-                zv *= dp[u].y;
-            }
-
-            long yv = 1;
-            foreach (var u in children)
-            {
-                yv *= (dp[u].x + dp[u].y);
-            }
-            yv -= zv;
-
-            long xv = 1;
-            foreach (var u in children)
-            {
-                xv *= (dp[u].y + dp[u].z);
-            }
-
-            dp[v] = (xv, yv, zv);
-        }
-    }
+			return dp[0].x + dp[0].y;
+		}
+	}
 }
