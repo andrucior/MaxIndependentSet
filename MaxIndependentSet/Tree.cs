@@ -3,6 +3,7 @@
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
+	using System.Numerics; // wielkie liczb
 
 	public class Vertex
 	{
@@ -33,7 +34,6 @@
 
 		public void AddEdge(int parent, int child)
 		{
-			// Zakładamy, że parent < child, zgodnie z dokumentacją
 			Vertices[parent].Children.Add(Vertices[child]);
 		}
 
@@ -48,47 +48,45 @@
 			}
 		}
 
-		public long CountMaxIndependentSets()
+		
+		public BigInteger CountMaxIndependentSets()
 		{
 			int n = Vertices.Length;
-			// Tablica -  dostęp (O(1))
-			var dp = new (long x, long y, long z)[n];
 
-			// od dołu do góry drzewa
+			
+			var dp = new (BigInteger x, BigInteger y, BigInteger z)[n];
+
 			for (int i = n - 1; i >= 0; i--)
 			{
 				var v = Vertices[i];
 				var children = v.Children;
 
-				// Liść
 				if (children.Count == 0)
 				{
 					dp[i] = (1, 0, 1);
 					continue;
 				}
 
-				// Wierzchołek, którego dziećmi są wyłącznie liście
 				if (children.All(c => c.Children.Count == 0))
 				{
 					dp[i] = (1, 1, 0);
 					continue;
 				}
 
-				// Wewnątrz drzewa
-				long zv = 1;
+				BigInteger zv = 1;
 				foreach (var u in children)
 				{
 					zv *= dp[u.Id].y;
 				}
 
-				long yv = 1;
+				BigInteger yv = 1;
 				foreach (var u in children)
 				{
 					yv *= (dp[u.Id].x + dp[u.Id].y);
 				}
 				yv -= zv;
 
-				long xv = 1;
+				BigInteger xv = 1;
 				foreach (var u in children)
 				{
 					xv *= (dp[u.Id].y + dp[u.Id].z);

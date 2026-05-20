@@ -1,105 +1,117 @@
 ﻿using MaxIndependentSet;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 class Program
 {
-    static void Main()
-    {
-        while (true)
-        {
-            Console.WriteLine("\n=== Max Independent Set ===");
-            Console.WriteLine("1. Wybierz plik z folderu Data");
-            Console.WriteLine("2. Losowe drzewo");
-            Console.WriteLine("0. Wyjście");
-            Console.Write("Twój wybór: ");
+	static void Main(string[] args)
+	{
+		
+		if (args.Length > 0)
+		{
+			var tree = TreeLoader.LoadTree(args[0]);
 
-            var choice = Console.ReadLine();
+			Stopwatch sw = Stopwatch.StartNew();
+			BigInteger result = tree.CountMaxIndependentSets();
+			sw.Stop();
 
-            switch (choice)
-            {
-                case "1":
-                    RunFromFile();
-                    break;
+			Console.WriteLine(result);
+			Console.WriteLine(sw.Elapsed.TotalMicroseconds);
+			return;
+		}
 
-                case "2":
-                    RunExample();
-                    break;
+		
+		while (true)
+		{
+			Console.WriteLine("\n=== Max Independent Set ===");
+			Console.WriteLine("1. Wybierz plik z bieżącego katalogu");
+			Console.WriteLine("2. Losowe drzewo");
+			Console.WriteLine("0. Wyjście");
+			Console.Write("Twój wybór: ");
 
-                case "0":
-                    return;
+			var choice = Console.ReadLine();
 
-                default:
-                    Console.WriteLine("Nieznana opcja.");
-                    break;
-            }
-        }
+			switch (choice)
+			{
+				case "1":
+					RunFromFile();
+					break;
+				case "2":
+					RunExample();
+					break;
+				case "0":
+					return;
+				default:
+					Console.WriteLine("Nieznana opcja.");
+					break;
+			}
+		}
+	}
 
-        static void RunFromFile()
-        {
-            ShowFiles();
+	static void RunFromFile()
+	{
+		ShowFiles();
 
-            Console.Write("Podaj nazwę pliku:");
-            string file = Console.ReadLine()!;
+		Console.Write("Podaj nazwę pliku: ");
+		string file = Console.ReadLine()!;
 
-            if (!File.Exists(Path.Combine(TreeLoader.GetDataFolder(), file)))
-            {
-                Console.WriteLine("Plik nie istnieje.");
-                return;
-            }
+		if (!File.Exists(file))
+		{
+			Console.WriteLine("Plik nie istnieje.");
+			return;
+		}
 
-            Process(file);
-        }
+		Process(file);
+	}
 
-        static void ShowFiles()
-        {
-            var files = Directory.GetFiles(TreeLoader.GetDataFolder(), "input_*.txt");
+	static void ShowFiles()
+	{
+		var files = Directory.GetFiles(".", "input_*.txt");
 
-            if (files.Length == 0)
-            {
-                Console.WriteLine("Brak plików input_*.txt");
-                return;
-            }
+		if (files.Length == 0)
+		{
+			Console.WriteLine("Brak plików input_*.txt w bieżącym katalogu.");
+			return;
+		}
 
-            Console.WriteLine("\nDostępne pliki:");
-            foreach (var f in files)
-                Console.WriteLine("- " + Path.GetFileName(f));
-        }
+		Console.WriteLine("\nDostępne pliki:");
+		foreach (var f in files)
+			Console.WriteLine("- " + Path.GetFileName(f));
+	}
 
-        static void Process(string file)
-        {
-            Console.WriteLine($"\nPlik: {file}\n");
+	static void Process(string file)
+	{
+		Console.WriteLine($"\nPlik: {file}\n");
+		Console.WriteLine("Wczytano drzewo:");
 
-            Console.WriteLine("Wczytano drzewo:");
-            var tree = TreeLoader.LoadTree(file);
+		var tree = TreeLoader.LoadTree(file);
 
-            tree.PrintTree();
+	
+		tree.PrintTree();
 
-            long result = tree.CountMaxIndependentSets();
+		//Stopwatch sw = Stopwatch.StartNew();
+		BigInteger result = tree.CountMaxIndependentSets();
+		//sw.Stop();
 
-            Console.WriteLine($"\nWynik: {result}");
-        }
+		Console.WriteLine($"\nWynik (MIS): {result}");
+		//Console.WriteLine($"Czas czystych obliczeń: {sw.Elapsed.TotalMicroseconds:F2} µs");
+	}
 
-        static void RunExample()
-        {
-            Console.WriteLine("Podaj rozmiar");
-            var choice = Console.ReadLine();
+	static void RunExample()
+	{
+		Console.WriteLine("Podaj rozmiar:");
+		var choice = Console.ReadLine();
 
-            if (!int.TryParse(choice, out int parsedChoice))
-            {
-                Console.WriteLine("Rozmiar musi być liczbą całkowitą!");
-                RunExample();
-            }
-            if (parsedChoice <= 0 || parsedChoice > 100)
-            {
-                Console.WriteLine("Rozmiar nieprawidlowy!");
-                RunExample();
-            }
-            
+		if (!int.TryParse(choice, out int parsedChoice) || parsedChoice <= 0 || parsedChoice > 10000)
+		{
+			Console.WriteLine("Rozmiar nieprawidłowy! Wymagana liczba całkowita z przedziału (0, 10000].");
+			return;
+		}
 
-            string temp = "example.txt";
-            TreeLoader.CreateRandomTreeFile(temp, parsedChoice);
-            Process(temp);
-        }
-    }
+		string temp = "example.txt";
+		TreeLoader.CreateRandomTreeFile(temp, parsedChoice);
+		Process(temp);
+	}
 }

@@ -7,11 +7,10 @@
 	{
 		public static Tree LoadTree(string filename)
 		{
-			using StreamReader reader = new(Path.Combine(GetDataFolder(), filename));
+			using StreamReader reader = new(filename);
 
 			int n = int.Parse(reader.ReadLine()!);
 
-			// Inicjalizujemy drzewo na n elementów
 			var tree = new Tree(n);
 
 			for (int i = 0; i < n - 1; i++)
@@ -22,7 +21,6 @@
 				int u = int.Parse(parts[0]);
 				int v = int.Parse(parts[1]);
 
-				// Wymuszamy, by rodzic miał mniejszy indeks, dodajemy krawędź
 				tree.AddEdge(Math.Min(u, v), Math.Max(u, v));
 			}
 
@@ -39,7 +37,8 @@
 
 		public static void CreateRandomTreeFile(string filename, int n)
 		{
-			using StreamWriter writer = new(Path.Combine(GetDataFolder(), filename));
+			// Zapis bezpośrednio do bieżącego katalogu
+			using StreamWriter writer = new(filename);
 			Random rand = new();
 
 			writer.WriteLine(n);
@@ -49,15 +48,6 @@
 				int parent = rand.Next(0, i);
 				writer.WriteLine($"{parent} {i}");
 			}
-		}
-
-		public static string GetDataFolder()
-		{
-			var baseDir = AppContext.BaseDirectory;
-			var projectDir = Directory.GetParent(baseDir)!.Parent!.Parent!.Parent!.FullName;
-			var dataDir = Path.Combine(projectDir, "Data");
-			Directory.CreateDirectory(dataDir);
-			return dataDir;
 		}
 	}
 }
