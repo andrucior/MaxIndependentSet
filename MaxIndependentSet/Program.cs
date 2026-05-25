@@ -155,8 +155,19 @@ class Program
 			return;
 		}
 
-		string temp = "example.txt";
-		TreeLoader.CreateRandomTreeFile(temp, parsedChoice);
-		Process(temp);
+
+		string out_file = "example";
+		int number = 0;
+		var files = Directory.GetFiles(".", "*" + out_file + "*");
+		if (files is not null)
+			number += files.Length;
+
+		if (number != 0)
+			out_file += ("_" + number.ToString());
+
+		out_file += ".txt";
+
+		TreeLoader.CreateRandomTreeFile(out_file, parsedChoice);
+		Process(out_file);
 	}
 }
