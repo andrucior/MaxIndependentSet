@@ -11,7 +11,20 @@ class Program
 		
 		if (args.Length > 0)
 		{
-			var tree = TreeLoader.LoadTree(args[0]);
+			Tree? tree = null;
+
+			try
+			{
+				if ((tree = TreeLoader.LoadTree(args[0])) is null)
+				{
+					throw new Exception("drzewo puste");
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("Błąd: " + ex.Message);
+				return;
+			}
 
 			Stopwatch sw = Stopwatch.StartNew();
 			BigInteger result = tree.CountMaxIndependentSets();
@@ -86,9 +99,22 @@ class Program
 		Console.WriteLine($"\nPlik: {file}\n");
 		Console.WriteLine("Wczytano drzewo:");
 
-		var tree = TreeLoader.LoadTree(file);
+		Tree? tree = null;
 
-	
+		try
+		{
+			if ((tree = TreeLoader.LoadTree(file)) is null)
+			{
+				throw new Exception("drzewo nie zostało wczytane poprawnie");
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine("Błąd: " + ex.Message);
+			return;
+		}
+
+
 		tree.PrintTree();
 
 		//Stopwatch sw = Stopwatch.StartNew();
@@ -97,6 +123,25 @@ class Program
 
 		Console.WriteLine($"\nWynik (MIS): {result}");
 		//Console.WriteLine($"Czas czystych obliczeń: {sw.Elapsed.TotalMicroseconds:F2} µs");
+
+
+		//Zapisanie do pliku wyniku
+
+		string out_file = file.Replace(".txt", "_output").Replace("input", "I");
+		int number = 0;
+		var files = Directory.GetFiles(".", "*" + out_file + "*");
+		if (files is not null)
+			number += files.Length;
+
+		if (number != 0)
+			out_file += ("_" + number.ToString());
+
+		out_file += ".txt";
+
+		Console.WriteLine("Zapisano wynik do pliku o nazwie: " + out_file);
+
+		using StreamWriter sw = new (out_file);
+		sw.WriteLine($"{result}");
 	}
 
 	static void RunExample()

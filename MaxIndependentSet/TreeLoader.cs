@@ -21,6 +21,11 @@
 				int u = int.Parse(parts[0]);
 				int v = int.Parse(parts[1]);
 
+				if(u >= v)
+				{
+					throw new Exception("rodzic musi miec indeks ostro mniejszy od indeksu dziecka");
+				}
+
 				tree.AddEdge(Math.Min(u, v), Math.Max(u, v));
 			}
 
