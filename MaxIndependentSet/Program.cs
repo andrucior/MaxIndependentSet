@@ -52,7 +52,7 @@ class Program
 					RunFromFile();
 					break;
 				case "2":
-					RunExample();
+					CreateExampleTree();
 					break;
 				case "0":
 					return;
@@ -81,9 +81,9 @@ class Program
 
 	static void ShowFiles()
 	{
-		var files = Directory.GetFiles(".", "input_*.txt");
+        var files = Directory.GetFiles(".", "*.txt");
 
-		if (files.Length == 0)
+        if (files.Length == 0)
 		{
 			Console.WriteLine("Brak plików input_*.txt w bieżącym katalogu.");
 			return;
@@ -117,15 +117,9 @@ class Program
 
 		tree.PrintTree();
 
-		//Stopwatch sw = Stopwatch.StartNew();
 		BigInteger result = tree.CountMaxIndependentSets();
-		//sw.Stop();
 
 		Console.WriteLine($"\nWynik (MIS): {result}");
-		//Console.WriteLine($"Czas czystych obliczeń: {sw.Elapsed.TotalMicroseconds:F2} µs");
-
-
-		//Zapisanie do pliku wyniku
 
 		string out_file = file.Replace(".txt", "_output").Replace("input", "I");
 		int number = 0;
@@ -144,7 +138,7 @@ class Program
 		sw.WriteLine($"{result}");
 	}
 
-	static void RunExample()
+	static void CreateExampleTree()
 	{
 		Console.WriteLine("Podaj rozmiar:");
 		var choice = Console.ReadLine();
@@ -154,7 +148,6 @@ class Program
 			Console.WriteLine("Rozmiar nieprawidłowy! Wymagana liczba całkowita z przedziału (0, 10000].");
 			return;
 		}
-
 
 		string out_file = "example";
 		int number = 0;
@@ -168,6 +161,6 @@ class Program
 		out_file += ".txt";
 
 		TreeLoader.CreateRandomTreeFile(out_file, parsedChoice);
-		Process(out_file);
+		Console.WriteLine($"Zapisano do pliku {out_file}");
 	}
 }
