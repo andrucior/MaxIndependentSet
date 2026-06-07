@@ -40,7 +40,7 @@ class Program
 		{
 			Console.WriteLine("\n=== Max Independent Set ===");
 			Console.WriteLine("1. Wybierz plik z bieżącego katalogu");
-			Console.WriteLine("2. Losowe drzewo");
+			Console.WriteLine("2. Stworz przykładowe drzewo");
 			Console.WriteLine("0. Wyjście");
 			Console.Write("Twój wybór: ");
 
